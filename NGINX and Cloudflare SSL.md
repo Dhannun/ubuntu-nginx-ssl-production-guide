@@ -152,6 +152,51 @@ Reload Nginx:
 ```bash
 sudo systemctl reload nginx
 ```
+---
+
+## Step 5.5: Harden Nginx — Block Direct IP Access 🔐
+
+Before setting up any subdomains, configure Nginx to silently drop connections that don't match a valid domain. This prevents information leakage if someone hits your server's raw IP address.
+
+Edit the default Nginx site:
+```bash
+sudo nano /etc/nginx/sites-available/default
+```
+
+Replace the contents with:
+```nginx
+server {
+    listen 80 default_server;
+    server_name _;
+    return 444;
+}
+```
+
+Test and reload:
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 🔥 What `return 444` Does
+
+- Silently drops the connection
+- No response, no redirect, no information leak
+- If someone visits your IP address directly → nothing happens
+- Clean, production-grade behavior
+
+### Production Best Practice Layout
+```
+/etc/nginx/sites-available/
+    default                      → blocks IP access (444)
+    your-subdomain.delqore.ng    → serves your app
+
+/etc/nginx/sites-enabled/
+    default
+    your-subdomain.delqore.ng
+```
+
+> **Note**: Make sure the `default` symlink exists in `sites-enabled`. Verify with `ls -la /etc/nginx/sites-enabled/`.
 
 ---
 
